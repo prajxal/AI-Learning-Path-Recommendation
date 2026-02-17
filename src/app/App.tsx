@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AppNavbar } from './components/AppNavbar';
 import { AppSidebar } from './components/AppSidebar';
 import { CourseCatalogPage } from './pages/CourseCatalogPage';
@@ -6,6 +7,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
 import { RoadmapTopic } from './components/RoadmapContainer';
 import { Course } from './data/courses';
 import { generateRoadmapForCourse } from './data/roadmapData';
@@ -13,8 +16,19 @@ import { useRecommendation } from './hooks/useRecommendation';
 
 type Page = 'catalog' | 'dashboard' | 'roadmap' | 'topic-detail' | 'profile';
 
-export default function App() {
-  const { recommendation, loading, error } = useRecommendation('123');
+function ProtectedRoute({ children }: { children: React.ReactElement }) {
+  const userId = localStorage.getItem('user_id');
+
+  if (!userId) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function MainAppShell() {
+  const userId = localStorage.getItem('user_id') as string;
+  const { recommendation, loading, error } = useRecommendation(userId);
   const [currentPage, setCurrentPage] = useState<Page>('catalog');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [topics, setTopics] = useState<RoadmapTopic[]>([]);
@@ -170,5 +184,25 @@ export default function App() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <MainAppShell />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

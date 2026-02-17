@@ -1,1 +1,3 @@
-"""Core configuration placeholder for future environment settings."""
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
