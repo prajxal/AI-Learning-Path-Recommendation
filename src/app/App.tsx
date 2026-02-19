@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppNavbar } from './components/AppNavbar';
 import { AppSidebar } from './components/AppSidebar';
 import { CourseCatalogPage } from './pages/CourseCatalogPage';
@@ -9,6 +9,7 @@ import { TopicDetailPage } from './pages/TopicDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import CourseDetailPage from './pages/CourseDetailPage';
 import { RoadmapTopic } from './components/RoadmapContainer';
 import { Course } from './data/courses';
 import { generateRoadmapForCourse } from './data/roadmapData';
@@ -201,6 +202,14 @@ export default function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/courses/:courseId"
+          element={
+            <ProtectedRoute>
+              <CourseDetailPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

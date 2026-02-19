@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Search, BookOpen, Clock, BarChart3, GraduationCap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { LemonInput } from '../components/LemonInput';
 import { LemonCard } from '../components/LemonCard';
-import { engineeringCourses, categories, Course } from '../data/courses';
+import { Course } from '../data/courses';
+import { useCourses } from '../../hooks/useCourses';
 
 interface CourseCatalogPageProps {
   onCourseSelect: (course: Course) => void;
@@ -11,8 +13,50 @@ interface CourseCatalogPageProps {
 export function CourseCatalogPage({ onCourseSelect }: CourseCatalogPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('All Courses');
   const [searchQuery, setSearchQuery] = useState('');
+  const { courses, loading, error } = useCourses();
 
-  const filteredCourses = engineeringCourses.filter((course) => {
+  if (loading) {
+    return <div>Loading courses...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading courses</div>;
+  }
+
+  const difficultyToLevel = (difficulty: number | null): string => {
+    if (difficulty === null) return 'Unknown';
+    if (difficulty <= 2) return 'Beginner';
+    if (difficulty <= 4) return 'Intermediate';
+    return 'Advanced';
+  };
+
+  const iconPalette = ['📚', '🧩', '🛠️', '⚙️', '🧠', '🔧', '🚀', '💡'];
+  const colorPalette = [
+    'bg-blue-500',
+    'bg-indigo-500',
+    'bg-cyan-500',
+    'bg-emerald-500',
+    'bg-orange-500',
+    'bg-violet-500',
+    'bg-rose-500',
+    'bg-teal-500',
+  ];
+
+  const mappedCourses: Course[] = courses.map((course, index) => ({
+    id: course.id,
+    title: course.title,
+    category: course.roadmap_id,
+    description: `Roadmap: ${course.roadmap_id}`,
+    icon: iconPalette[index % iconPalette.length],
+    duration: 'Self-paced',
+    level: difficultyToLevel(course.difficulty_level),
+    topics: course.difficulty_level === null ? 0 : Math.max(1, course.difficulty_level),
+    color: colorPalette[index % colorPalette.length],
+  }));
+
+  const categories = ['All Courses', ...Array.from(new Set(mappedCourses.map((course) => course.category)))];
+
+  const filteredCourses = mappedCourses.filter((course) => {
     const matchesCategory =
       selectedCategory === 'All Courses' || course.category === selectedCategory;
     const matchesSearch =
@@ -97,47 +141,48 @@ export function CourseCatalogPage({ onCourseSelect }: CourseCatalogPageProps) {
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <LemonCard
-              key={course.id}
-              hoverable
-              onClick={() => onCourseSelect(course)}
-            >
-              <div className="space-y-4">
-                {/* Course Icon & Category */}
-                <div className="flex items-start justify-between">
-                  <div className={`w-14 h-14 ${course.color} rounded-[6px] flex items-center justify-center text-3xl`}>
-                    {course.icon}
+            <Link key={course.id} to={`/courses/${course.id}`} className="block">
+              <LemonCard
+                hoverable
+                onClick={() => onCourseSelect(course)}
+              >
+                <div className="space-y-4">
+                  {/* Course Icon & Category */}
+                  <div className="flex items-start justify-between">
+                    <div className={`w-14 h-14 ${course.color} rounded-[6px] flex items-center justify-center text-3xl`}>
+                      {course.icon}
+                    </div>
+                    <span className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
+                      {course.category}
+                    </span>
                   </div>
-                  <span className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
-                    {course.category}
-                  </span>
-                </div>
 
-                {/* Course Title & Description */}
-                <div>
-                  <h3 className="font-medium mb-2">{course.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {course.description}
-                  </p>
-                </div>
+                  {/* Course Title & Description */}
+                  <div>
+                    <h3 className="font-medium mb-2">{course.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {course.description}
+                    </p>
+                  </div>
 
-                {/* Course Meta */}
-                <div className="flex items-center gap-4 pt-4 border-t border-border text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    <span>{course.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{course.topics} topics</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4" />
-                    <span>{course.level}</span>
+                  {/* Course Meta */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-border text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-4 h-4" />
+                      <span>{course.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <BookOpen className="w-4 h-4" />
+                      <span>{course.topics} topics</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <BarChart3 className="w-4 h-4" />
+                      <span>{course.level}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </LemonCard>
+              </LemonCard>
+            </Link>
           ))}
         </div>
 

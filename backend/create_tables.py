@@ -1,5 +1,7 @@
 from db.database import Base, engine
 from models import Event, User, UserSkill
+from models.course import Course
+from models.course_prerequisite import CoursePrerequisite
 
 
 def create_tables() -> None:
