@@ -7,6 +7,7 @@ import { Signup } from './pages/Signup';
 import CourseDetailPage from './pages/CourseDetailPage';
 import RoadmapCatalogPage from './pages/RoadmapCatalogPage';
 import RoadmapDetailPage from './pages/RoadmapDetailPage';
+import DashboardPage from './pages/DashboardPage';
 
 type Page = 'catalog' | 'dashboard' | 'roadmap' | 'topic-detail' | 'profile';
 
@@ -27,6 +28,7 @@ function AppLayout() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <Routes>
           <Route path="/" element={<RoadmapCatalogPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/roadmaps/:roadmapId" element={<RoadmapDetailPage />} />
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
