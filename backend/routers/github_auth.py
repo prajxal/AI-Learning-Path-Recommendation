@@ -92,6 +92,9 @@ async def github_callback(code: str, state: str, db: Session = Depends(get_db)):
 
     db.commit()
 
+    from services.github_skill_extractor import extract_and_store_github_skills
+    await extract_and_store_github_skills(user, db)
+
     return {"status": "success", "message": "GitHub account successfully linked"}
 
 @router.get("/status")

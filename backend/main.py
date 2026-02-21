@@ -13,6 +13,7 @@ from routers import learning_path
 from routers import roadmaps
 from routers import progress
 from routers import github_auth
+from routers import resume
 
 app = FastAPI(title="AI Learning Path Recommendation System")
 
@@ -37,6 +38,7 @@ app.include_router(
 app.include_router(roadmaps.router, prefix="/roadmaps", tags=["roadmaps"])
 app.include_router(progress.router, prefix="/progress", tags=["progress"])
 app.include_router(github_auth.router)
+app.include_router(resume.router, prefix="/resume", tags=["resume"])
 
 
 @app.get("/")

@@ -26,9 +26,25 @@ async def fetch_github_profile(access_token: str) -> dict:
         )
         return response.json()
 
-# Stubs for future use
 async def fetch_user_repositories(access_token: str) -> list:
-    return []
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.github.com/user/repos",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json",
+            },
+        )
+        return response.json() if response.status_code == 200 else []
 
 async def fetch_repository_languages(access_token: str, repo_name: str) -> dict:
-    return {}
+    async with httpx.AsyncClient() as client:
+        # repo_name is expected to be "owner/repo" (full_name)
+        response = await client.get(
+            f"https://api.github.com/repos/{repo_name}/languages",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json",
+            },
+        )
+        return response.json() if response.status_code == 200 else {}
