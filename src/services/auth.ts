@@ -1,43 +1,56 @@
 const API_BASE = "http://localhost:8000";
 
 export async function signup(email: string, password: string) {
-    const res = await fetch(`${API_BASE}/auth/signup`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-    });
+    try {
+        const res = await fetch(`${API_BASE}/auth/signup`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!res.ok) {
-        throw new Error(data.detail || "Signup failed");
+        if (!res.ok) {
+            throw new Error(data.detail || `Signup failed: ${res.status}`);
+        }
+
+        localStorage.setItem("access_token", data.access_token);
+
+        return data;
+    } catch (error: any) {
+        console.error("Signup error:", error);
+        if (error.message.includes("Failed to fetch")) {
+            throw new Error("Cannot connect to server. Is the backend running on port 8000?");
+        }
+        throw error;
     }
-
-    localStorage.setItem("access_token", data.access_token);
-
-    return data;
 }
 
 export async function login(email: string, password: string) {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-    });
+    try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!res.ok) {
-        throw new Error(data.detail || "Login failed");
+        if (!res.ok) {
+            throw new Error(data.detail || `Login failed: ${res.status}`);
+        }
+
+        localStorage.setItem("access_token", data.access_token);
+
+        return data;
+    } catch (error: any) {
+        console.error("Login error:", error);
+        throw new Error(error.message || "Failed to connect to server. Make sure backend is running on port 8000");
     }
-
-    localStorage.setItem("access_token", data.access_token);
-
-    return data;
 }
 
 export function getToken() {
