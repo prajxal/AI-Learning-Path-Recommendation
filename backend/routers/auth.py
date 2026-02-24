@@ -42,7 +42,8 @@ def signup(request: AuthRequest, db: Session = Depends(get_db)):
     access_token = create_access_token(user_id=new_user.id)
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user_id": new_user.id
     }
 
 # Login endpoint
@@ -57,7 +58,8 @@ def login(request: AuthRequest, db: Session = Depends(get_db)):
     access_token = create_access_token(user_id=user.id)
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "user_id": user.id
     }
 
 # Protected user details endpoint

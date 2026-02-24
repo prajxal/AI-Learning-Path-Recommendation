@@ -14,12 +14,26 @@ from routers import roadmaps
 from routers import progress
 from routers import github_auth
 from routers import resume
+from routers import resources
+from db.database import engine, Base
+
+# Import all models to ensure metadata.create_all registers them
+import models.course
+import models.course_prerequisite
+import models.course_resource
+import models.event
+import models.skill_profile
+import models.skill_weight
+import models.user
+import models.user_skill
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Learning Path Recommendation System")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,6 +53,7 @@ app.include_router(roadmaps.router, prefix="/roadmaps", tags=["roadmaps"])
 app.include_router(progress.router, prefix="/progress", tags=["progress"])
 app.include_router(github_auth.router)
 app.include_router(resume.router, prefix="/resume", tags=["resume"])
+app.include_router(resources.router, prefix="/courses", tags=["resources"])
 
 
 @app.get("/")

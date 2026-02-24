@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getGithubStatus, redirectToGithubConnect } from "../../services/githubApi";
 import { uploadResume } from "../../services/resumeApi";
 import { getUserSkills } from "../../services/userApi";
@@ -7,12 +7,13 @@ import { getToken } from "../../services/auth";
 
 export default function DashboardPage() {
   const token = getToken();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
-      window.location.href = "/login";
+      navigate('/login', { replace: true });
     }
-  }, [token]);
+  }, [token, navigate]);
 
   // Consolidating skills state
   const [skills, setSkills] = useState<any[]>([]);
@@ -108,9 +109,12 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-3">
             {skills.map(skill => (
-              <div key={skill.roadmap_id + "_profile"} className="flex justify-between border-b pb-2 text-gray-700">
-                <span className="capitalize font-medium">{skill.roadmap_id}</span>
-                <span>Confidence: {skill.proficiency_level ? (skill.proficiency_level * 100).toFixed(0) : 0}%</span>
+              <div key={skill.roadmap_id + "_profile"} className="flex justify-between items-center border-b pb-2 text-gray-700">
+                <span className="capitalize font-medium text-lg text-blue-900">{skill.roadmap_id}</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-semibold text-gray-900">Adaptive Score: {Math.round(skill.trust_score || 0)}</span>
+                  <span className="text-xs text-gray-500">Confidence: {skill.proficiency_level ? (skill.proficiency_level * 100).toFixed(0) : 0}%</span>
+                </div>
               </div>
             ))}
           </div>
@@ -156,8 +160,8 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex justify-between items-center pt-2">
-                  <div className="text-sm font-medium text-gray-700">
-                    Skill Level: {Math.round(skill.trust_score || 0)}
+                  <div className="text-sm font-medium text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                    Adaptive Score: {Math.round(skill.trust_score || 0)}
                   </div>
 
                   <Link

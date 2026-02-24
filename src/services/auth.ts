@@ -16,6 +16,7 @@ export async function signup(email: string, password: string) {
     }
 
     localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("user_id", data.user_id);
 
     return data;
 }
@@ -36,6 +37,7 @@ export async function login(email: string, password: string) {
     }
 
     localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("user_id", data.user_id);
 
     return data;
 }

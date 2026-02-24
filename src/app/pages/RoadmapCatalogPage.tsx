@@ -24,7 +24,7 @@ function RoadmapCard({ roadmap }: { roadmap: any }) {
                 <div className="mt-2 text-sm text-gray-600">
                     Progress: {progress.completed_courses} / {progress.total_courses}
                     <br />
-                    Skill: {Math.round(progress.trust_score)}
+                    Adaptive Score: {Math.round(progress.trust_score)}
                 </div>
             )}
         </Link>

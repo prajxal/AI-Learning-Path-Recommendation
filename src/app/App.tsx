@@ -8,6 +8,7 @@ import CourseDetailPage from './pages/CourseDetailPage';
 import RoadmapCatalogPage from './pages/RoadmapCatalogPage';
 import RoadmapDetailPage from './pages/RoadmapDetailPage';
 import DashboardPage from './pages/DashboardPage';
+import ResourceViewerPage from './pages/ResourceViewerPage';
 
 type Page = 'catalog' | 'dashboard' | 'roadmap' | 'topic-detail' | 'profile';
 
@@ -21,18 +22,37 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
   return children;
 }
 
+import { useLocation } from 'react-router-dom';
+
 function AppLayout() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  let currentPage = 'roadmap';
+  if (location.pathname.startsWith('/dashboard')) currentPage = 'dashboard';
+  else if (location.pathname.startsWith('/profile')) currentPage = 'profile';
+
   return (
-    <div className="min-h-screen bg-background">
-      <AppNavbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <Routes>
-          <Route path="/" element={<RoadmapCatalogPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/roadmaps/:roadmapId" element={<RoadmapDetailPage />} />
-          <Route path="/courses/:courseId" element={<CourseDetailPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+    <div className="min-h-screen bg-background flex flex-col">
+      <AppNavbar onMenuClick={() => setIsSidebarOpen(true)} showMenuButton={true} />
+      <div className="flex flex-1 overflow-hidden">
+        <AppSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          currentPage={currentPage}
+        />
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+            <Routes>
+              <Route path="/" element={<RoadmapCatalogPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/roadmaps/:roadmapId" element={<RoadmapDetailPage />} />
+              <Route path="/courses/:courseId" element={<CourseDetailPage />} />
+              <Route path="/course/:courseId/resource/:resourceId" element={<ResourceViewerPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </main>
       </div>
     </div>
   );

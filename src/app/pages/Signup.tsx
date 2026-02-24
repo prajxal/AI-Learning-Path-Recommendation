@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signup } from "../../services/auth";
 
 export function Signup() {
@@ -7,6 +7,7 @@ export function Signup() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,7 +20,9 @@ export function Signup() {
       const data = await signup(email, password);
       console.log("Response:", data);
 
-      window.location.href = "/dashboard";
+      console.log("Response:", data);
+
+      navigate("/dashboard");
 
     } catch (err: any) {
       setError(err.message || "Signup failed");

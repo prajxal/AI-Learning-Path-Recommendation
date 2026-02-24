@@ -1,0 +1,269 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getToken } from "../../services/auth";
+
+type Resource = {
+    id: string;
+    title: string;
+    url: string;
+    platform: string;
+    duration_seconds: number;
+    difficulty_level: number;
+    quality_score: number;
+    resource_type: string;
+};
+
+function convertToEmbedUrl(url: string) {
+    if (!url) return url;
+
+    if (url.includes("youtube.com/watch?v=")) {
+        const videoId = url.split("watch?v=")[1].split("&")[0];
+        return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    if (url.includes("youtu.be/")) {
+        const videoId = url.split("youtu.be/")[1].split("?")[0];
+        return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    return url;
+}
+
+export default function ResourceViewerPage() {
+    const { courseId, resourceId } = useParams();
+    const navigate = useNavigate();
+
+    const [resources, setResources] = useState<{ primary: Resource | null, additional: Resource[] }>({ primary: null, additional: [] });
+    const [activeResource, setActiveResource] = useState<Resource | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [iframeLoading, setIframeLoading] = useState(true);
+    const [iframeError, setIframeError] = useState(false);
+
+    useEffect(() => {
+        if (!courseId) return;
+
+        const token = getToken();
+        setLoading(true);
+        fetch(`http://localhost:8000/courses/${courseId}/resources`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                setResources(data || { primary: null, additional: [] });
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setLoading(false);
+            });
+    }, [courseId]);
+
+    useEffect(() => {
+        setIframeError(false); // Reset iframe error state when selecting a new resource
+        setIframeLoading(true); // Reset iframe loading state
+    }, [resourceId]);
+
+    const allResources = (() => {
+        const arr: Resource[] = [];
+        if (resources.primary) arr.push(resources.primary);
+        arr.push(...resources.additional);
+        return arr;
+    })();
+
+    useEffect(() => {
+        const arr: Resource[] = [];
+        if (resources.primary) arr.push(resources.primary);
+        if (resources.additional) arr.push(...resources.additional);
+
+        if (arr.length === 0) {
+            setActiveResource(null);
+            return;
+        }
+
+        const found = arr.find(r => String(r.id) === String(resourceId));
+        setActiveResource(found || arr[0]);
+    }, [resourceId, resources]);
+
+    if (loading) {
+        return <div className="p-8 text-muted-foreground flex items-center justify-center">Loading viewer...</div>;
+    }
+
+    if (allResources.length === 0) {
+        return <div className="p-8 text-center text-muted-foreground">No resources available for this topic.</div>;
+    }
+
+    if (!activeResource) {
+        return <div className="p-8 text-center text-muted-foreground">Resource not found.</div>;
+    }
+
+    const renderSidebarSection = (type: string, title: string, icon: string) => {
+        const items = allResources.filter(r =>
+            type === 'article' ? (r.resource_type === 'article' || !r.resource_type) : r.resource_type === type
+        );
+
+        if (items.length === 0) return null;
+
+        return (
+            <div className="mb-6" key={type}>
+                <h4 className="text-sm font-semibold text-muted-foreground mb-3 px-2 flex items-center gap-2 uppercase tracking-wider">
+                    {icon} {title}
+                </h4>
+                <div className="space-y-1">
+                    {items.map(res => {
+                        const isActive = res.id === activeResource.id;
+                        return (
+                            <button
+                                key={res.id}
+                                onClick={() => navigate(`/course/${courseId}/resource/${res.id}`)}
+                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors border border-transparent ${isActive
+                                    ? 'bg-blue-600/10 text-blue-600 font-medium border-blue-600/20'
+                                    : 'text-foreground hover:bg-muted/50 hover:border-border'
+                                    }`}
+                            >
+                                <div className="line-clamp-2">{res.title}</div>
+                                {res.platform && (
+                                    <div className={`text-xs mt-1 ${isActive ? 'text-blue-500/80' : 'text-muted-foreground'}`}>
+                                        {res.platform.toUpperCase()}
+                                    </div>
+                                )}
+                            </button>
+                        )
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="flex h-[calc(100vh-8rem)] -mt-4 -mx-4 overflow-hidden border rounded-xl bg-card">
+            {/* Sidebar */}
+            <div className="w-1/4 min-w-[280px] max-w-[350px] border-r bg-muted/20 overflow-y-auto">
+                <div className="p-4 border-b bg-card sticky top-0 z-10 hidden sm:flex items-center gap-2">
+                    <button
+                        onClick={() => navigate(`/courses/${courseId}`)}
+                        className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted"
+                    >
+                        ← Back
+                    </button>
+                    <span className="font-semibold text-sm truncate">Course Resources</span>
+                </div>
+
+                <div className="p-4">
+                    {renderSidebarSection('video', 'Videos', '🎥')}
+                    {renderSidebarSection('documentation', 'Documentation', '📖')}
+                    {renderSidebarSection('article', 'Articles', '📰')}
+                    {renderSidebarSection('practice', 'Practice / Labs', '🧪')}
+                </div>
+            </div>
+
+            {/* Main Viewer */}
+            <div className="flex-1 flex flex-col overflow-hidden bg-background">
+                <div className="p-4 border-b bg-card">
+                    <div className="flex items-start justify-between mb-1">
+                        <h2 className="text-xl font-semibold pr-4">{activeResource.title}</h2>
+                        {activeResource.resource_type === "video" ? (
+                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                🟢 Embedded Video
+                            </span>
+                        ) : iframeError ? (
+                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                🔗 Opens externally
+                            </span>
+                        ) : (
+                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                🟢 Embedded Documentation
+                            </span>
+                        )}
+                    </div>
+                    <div className="text-sm text-muted-foreground flex gap-3 items-center">
+                        <span className="capitalize">{activeResource.platform}</span>
+                        {activeResource.duration_seconds > 0 && (
+                            <span>• {Math.floor(activeResource.duration_seconds / 60)} mins</span>
+                        )}
+                        <a
+                            href={activeResource.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto text-blue-600 hover:underline flex items-center gap-1"
+                        >
+                            Open external <span className="text-xs">↗</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div className="flex-1 p-6 overflow-y-auto w-full h-full flex flex-col relative bg-muted/5">
+                    {activeResource.resource_type === "video" ? (
+                        <div key={activeResource.id} className="relative aspect-video w-full rounded-xl shadow-lg border bg-black mt-4 max-w-5xl mx-auto overflow-hidden">
+                            {iframeLoading && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-muted/20 animate-pulse">
+                                    <div className="w-8 h-8 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+                                </div>
+                            )}
+                            <iframe
+                                key={activeResource.url}
+                                src={convertToEmbedUrl(activeResource.url)}
+                                className={`w-full h-full transition-opacity duration-300 ${iframeLoading ? 'opacity-0' : 'opacity-100'}`}
+                                allowFullScreen
+                                frameBorder="0"
+                                onLoad={() => setIframeLoading(false)}
+                                onError={() => {
+                                    setIframeLoading(false);
+                                    setIframeError(true);
+                                }}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            />
+                        </div>
+                    ) : (
+                        <div key={activeResource.id} className="relative w-full flex-1 rounded-xl shadow-lg border bg-white flex flex-col overflow-hidden">
+                            {iframeError ? (
+                                <div className="flex flex-col items-center justify-center flex-1 bg-white p-12 text-center h-full">
+                                    <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mb-6 text-2xl shadow-sm border">
+                                        🔗
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-3 text-foreground">
+                                        External Resource
+                                    </h3>
+                                    <p className="text-muted-foreground mb-8 max-w-md">
+                                        ⚠️ This resource cannot be displayed inside LearnPathAI due to external site restrictions.
+                                    </p>
+                                    <a
+                                        href={activeResource.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-all shadow-sm hover:shadow"
+                                    >
+                                        Open in new tab <span className="text-lg leading-none">↗</span>
+                                    </a>
+                                </div>
+                            ) : (
+                                <>
+                                    {iframeLoading && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+                                            <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                                                <div className="w-8 h-8 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+                                                <p className="text-sm font-medium animate-pulse">Loading document...</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <iframe
+                                        key={activeResource.url}
+                                        src={activeResource.url}
+                                        className={`w-full h-full min-h-[70vh] flex-1 transition-opacity duration-300 ${iframeLoading ? 'opacity-0' : 'opacity-100'}`}
+                                        onLoad={() => setIframeLoading(false)}
+                                        onError={() => {
+                                            setIframeLoading(false);
+                                            setIframeError(true);
+                                        }}
+                                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                                    />
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
