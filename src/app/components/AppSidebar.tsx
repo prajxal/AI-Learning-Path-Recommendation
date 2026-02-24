@@ -12,7 +12,7 @@ interface AppSidebarProps {
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
   { id: 'roadmap', label: 'Learning Path', icon: Map, path: '/' },
-  { id: 'profile', label: 'My Progress', icon: User, path: '/dashboard' },
+  { id: 'progress', label: 'My Progress', icon: User, path: '/progress' },
 ];
 
 export function AppSidebar({ currentPage, isOpen = true, onClose }: AppSidebarProps) {
@@ -36,7 +36,7 @@ export function AppSidebar({ currentPage, isOpen = true, onClose }: AppSidebarPr
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:sticky top-0 left-0 h-screen bg-sidebar border-r border-sidebar-border z-50
+          fixed lg:static top-0 left-0 h-full bg-sidebar border-r border-sidebar-border z-50 flex-shrink-0
           transition-transform duration-200 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           w-[240px]

@@ -24,9 +24,9 @@ export function RoadmapContainer({ topics, onTopicClick }: RoadmapContainerProps
     acc[topic.stage].push(topic);
     return acc;
   }, {} as Record<number, RoadmapTopic[]>);
-  
+
   const stageNumbers = Object.keys(stages).map(Number).sort((a, b) => a - b);
-  
+
   return (
     <div className="space-y-8">
       {stageNumbers.map((stageNum, index) => (
@@ -38,12 +38,13 @@ export function RoadmapContainer({ topics, onTopicClick }: RoadmapContainerProps
             </div>
             <h3 className="font-medium">Stage {stageNum}</h3>
           </div>
-          
+
           {/* Topics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-11">
             {stages[stageNum].map((topic) => (
               <RoadmapNode
                 key={topic.id}
+                id={topic.id}
                 title={topic.title}
                 description={topic.description}
                 status={topic.status}
@@ -52,7 +53,7 @@ export function RoadmapContainer({ topics, onTopicClick }: RoadmapContainerProps
               />
             ))}
           </div>
-          
+
           {/* Connector Line */}
           {index < stageNumbers.length - 1 && (
             <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-border" />

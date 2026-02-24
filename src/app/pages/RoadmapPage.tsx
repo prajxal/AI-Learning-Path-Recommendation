@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RoadmapContainer, RoadmapTopic } from '../components/RoadmapContainer';
 import { LemonCard } from '../components/LemonCard';
 
@@ -9,19 +10,26 @@ interface RoadmapPageProps {
 }
 
 export function RoadmapPage({ learningGoal, topics, onTopicClick }: RoadmapPageProps) {
+  const navigate = useNavigate();
   const totalTopics = topics.length;
   const completedTopics = topics.filter(t => t.status === 'completed').length;
   const unlockedTopics = topics.filter(t => t.status === 'unlocked').length;
   const lockedTopics = topics.filter(t => t.status === 'locked').length;
-  
+
   return (
     <div className="space-y-6">
+      <button
+        onClick={() => navigate(`/dashboard`)}
+        className="text-muted-foreground hover:text-foreground flex items-center gap-2 mb-2 transition-colors"
+      >
+        ← Back to Dashboard
+      </button>
       {/* Header */}
       <div>
         <h1>Learning Roadmap</h1>
         <p className="text-muted-foreground mt-1">{learningGoal}</p>
       </div>
-      
+
       {/* Stats Overview */}
       <LemonCard>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -43,7 +51,7 @@ export function RoadmapPage({ learningGoal, topics, onTopicClick }: RoadmapPageP
           </div>
         </div>
       </LemonCard>
-      
+
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
@@ -59,7 +67,7 @@ export function RoadmapPage({ learningGoal, topics, onTopicClick }: RoadmapPageP
           <span className="text-muted-foreground">Locked</span>
         </div>
       </div>
-      
+
       {/* Roadmap */}
       <RoadmapContainer topics={topics} onTopicClick={onTopicClick} />
     </div>

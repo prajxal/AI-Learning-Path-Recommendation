@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getToken } from "../../services/auth";
+import { useProgress } from "../hooks/useProgress";
 
 type Resource = {
     id: string;
@@ -39,6 +40,9 @@ export default function ResourceViewerPage() {
     const [iframeLoading, setIframeLoading] = useState(true);
     const [iframeError, setIframeError] = useState(false);
 
+    // Progress Engine
+    const { markResourceInProgress, markResourceComplete, getResourceProgress } = useProgress();
+
     useEffect(() => {
         if (!courseId) return;
 
@@ -63,7 +67,11 @@ export default function ResourceViewerPage() {
     useEffect(() => {
         setIframeError(false); // Reset iframe error state when selecting a new resource
         setIframeLoading(true); // Reset iframe loading state
-    }, [resourceId]);
+
+        if (courseId && resourceId && activeResource) {
+            markResourceInProgress(courseId, resourceId, undefined, "Active Course Module", activeResource.title);
+        }
+    }, [resourceId, activeResource]);
 
     const allResources = (() => {
         const arr: Resource[] = [];
@@ -113,21 +121,30 @@ export default function ResourceViewerPage() {
                 <div className="space-y-1">
                     {items.map(res => {
                         const isActive = res.id === activeResource.id;
+                        const status = getResourceProgress(courseId as string, res.id);
+
                         return (
                             <button
                                 key={res.id}
                                 onClick={() => navigate(`/course/${courseId}/resource/${res.id}`)}
-                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors border border-transparent ${isActive
+                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors border flex items-start gap-2 ${isActive
                                     ? 'bg-blue-600/10 text-blue-600 font-medium border-blue-600/20'
-                                    : 'text-foreground hover:bg-muted/50 hover:border-border'
+                                    : 'text-foreground hover:bg-muted/50 border-transparent hover:border-border'
                                     }`}
                             >
-                                <div className="line-clamp-2">{res.title}</div>
-                                {res.platform && (
-                                    <div className={`text-xs mt-1 ${isActive ? 'text-blue-500/80' : 'text-muted-foreground'}`}>
-                                        {res.platform.toUpperCase()}
-                                    </div>
-                                )}
+                                <div className="mt-0.5 shrink-0 text-gray-500">
+                                    {status === 'completed' && <span className="text-green-500 text-base leading-none">✓</span>}
+                                    {status === 'in_progress' && <span className="text-blue-500 text-[10px] leading-none">●</span>}
+                                    {status === 'not_started' && <span className="text-gray-300 text-[10px] leading-none">○</span>}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="line-clamp-2">{res.title}</div>
+                                    {res.platform && (
+                                        <div className={`text-xs mt-1 ${isActive ? 'text-blue-500/80' : 'text-muted-foreground'}`}>
+                                            {res.platform.toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
                             </button>
                         )
                     })}
@@ -163,19 +180,34 @@ export default function ResourceViewerPage() {
                 <div className="p-4 border-b bg-card">
                     <div className="flex items-start justify-between mb-1">
                         <h2 className="text-xl font-semibold pr-4">{activeResource.title}</h2>
-                        {activeResource.resource_type === "video" ? (
-                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                🟢 Embedded Video
-                            </span>
-                        ) : iframeError ? (
-                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                🔗 Opens externally
-                            </span>
-                        ) : (
-                            <span className="shrink-0 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                🟢 Embedded Documentation
-                            </span>
-                        )}
+                        <div className="flex items-center gap-2 shrink-0">
+                            {activeResource.resource_type === "video" ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    🟢 Embedded Video
+                                </span>
+                            ) : iframeError ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                    🔗 Opens externally
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    🟢 Embedded Documentation
+                                </span>
+                            )}
+
+                            {getResourceProgress(courseId as string, activeResource.id) !== 'completed' ? (
+                                <button
+                                    onClick={() => markResourceComplete(courseId as string, activeResource.id)}
+                                    className="ml-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1 px-3 rounded transition-colors"
+                                >
+                                    Mark Complete ✓
+                                </button>
+                            ) : (
+                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                    ✓ Completed
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <div className="text-sm text-muted-foreground flex gap-3 items-center">
                         <span className="capitalize">{activeResource.platform}</span>

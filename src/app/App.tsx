@@ -9,8 +9,9 @@ import RoadmapCatalogPage from './pages/RoadmapCatalogPage';
 import RoadmapDetailPage from './pages/RoadmapDetailPage';
 import DashboardPage from './pages/DashboardPage';
 import ResourceViewerPage from './pages/ResourceViewerPage';
+import MyProgressPage from './pages/MyProgressPage';
 
-type Page = 'catalog' | 'dashboard' | 'roadmap' | 'topic-detail' | 'profile';
+type Page = 'catalog' | 'dashboard' | 'roadmap' | 'topic-detail' | 'profile' | 'progress';
 
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
   const token = localStorage.getItem('access_token');
@@ -31,21 +32,24 @@ function AppLayout() {
   let currentPage = 'roadmap';
   if (location.pathname.startsWith('/dashboard')) currentPage = 'dashboard';
   else if (location.pathname.startsWith('/profile')) currentPage = 'profile';
+  else if (location.pathname.startsWith('/progress')) currentPage = 'progress';
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <AppNavbar onMenuClick={() => setIsSidebarOpen(true)} showMenuButton={true} />
-      <div className="flex flex-1 overflow-hidden">
-        <AppSidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          currentPage={currentPage}
-        />
+    <div className="flex h-screen overflow-hidden bg-background">
+      <AppSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        currentPage={currentPage}
+      />
+
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <AppNavbar onMenuClick={() => setIsSidebarOpen(true)} showMenuButton={true} />
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
             <Routes>
               <Route path="/" element={<RoadmapCatalogPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/progress" element={<MyProgressPage />} />
               <Route path="/roadmaps/:roadmapId" element={<RoadmapDetailPage />} />
               <Route path="/courses/:courseId" element={<CourseDetailPage />} />
               <Route path="/course/:courseId/resource/:resourceId" element={<ResourceViewerPage />} />

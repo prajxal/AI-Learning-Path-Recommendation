@@ -4,6 +4,7 @@ import { getGithubStatus, redirectToGithubConnect } from "../../services/githubA
 import { uploadResume } from "../../services/resumeApi";
 import { getUserSkills } from "../../services/userApi";
 import { getToken } from "../../services/auth";
+import { useProgress } from "../hooks/useProgress";
 
 export default function DashboardPage() {
   const token = getToken();
@@ -24,6 +25,9 @@ export default function DashboardPage() {
   const [githubConnected, setGithubConnected] = useState(false);
   const [githubUsername, setGithubUsername] = useState("");
   const [resumeUploading, setResumeUploading] = useState(false);
+
+  const { getLastAccessed } = useProgress();
+  const lastAccessed = getLastAccessed();
 
   useEffect(() => {
     if (!token) return;
@@ -121,18 +125,46 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <h1 className="text-3xl font-bold mb-8 text-center">Learning Tracks Progress</h1>
+      {/* Continue Learning Feature */}
+      {lastAccessed && lastAccessed.courseId && lastAccessed.resourceId && (
+        <div className="mb-8 mt-4">
+          <h2 className="text-2xl font-bold mb-4">Continue Learning</h2>
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl p-6 shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div>
+              <p className="text-blue-100 text-sm mb-1 uppercase tracking-wider font-semibold">
+                {lastAccessed.courseTitle || "Active Course Module"}
+              </p>
+              <h3 className="text-xl font-bold">{lastAccessed.resourceTitle || "Resume where you left off"}</h3>
+            </div>
+            <button
+              onClick={() => navigate(`/course/${lastAccessed.courseId}/resource/${lastAccessed.resourceId}`)}
+              className="mt-4 sm:mt-0 bg-white text-blue-700 hover:bg-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors shadow-sm"
+            >
+              Resume ↗
+            </button>
+          </div>
+        </div>
+      )}
+
+      <h1 className="text-3xl font-bold mb-8 text-center mt-12">Learning Tracks Progress</h1>
 
       {/* Non-blocking loading and error states */}
-      {loading && <div className="p-8 text-center">Loading skills...</div>}
-      {error && <div className="p-8 text-center text-red-500">{error}</div>}
+      {loading && (
+        <div className="grid gap-6">
+          {[1, 2].map(i => (
+            <div key={i} className="bg-card border rounded-xl p-6 h-48 animate-pulse shadow-sm" />
+          ))}
+        </div>
+      )}
+
+      {error && <div className="p-8 text-center text-red-500 bg-red-50 rounded-xl border border-red-100">{error}</div>}
 
       {!loading && !error && (
         <div className="grid gap-6">
           {skills.map((skill) => (
             <div
               key={skill.roadmap_id}
-              className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow"
+              className="bg-card border rounded-xl p-6 hover:shadow-md transition-all relative overflow-hidden group"
             >
               <div className="flex justify-between items-start mb-4">
                 <h2 className="text-xl font-semibold capitalize">

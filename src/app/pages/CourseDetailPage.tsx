@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { getToken } from "../../services/auth";
+import { useProgress } from "../hooks/useProgress";
 
 type Course = {
   id: string;
@@ -19,6 +20,8 @@ export default function CourseDetailPage() {
   const [pathLoading, setPathLoading] = useState(true);
   const [resources, setResources] = useState<{ primary: any, additional: any[] }>({ primary: null, additional: [] });
   const [resourcesLoading, setResourcesLoading] = useState(true);
+
+  const { getResourceProgress, getCourseProgress } = useProgress();
 
   useEffect(() => {
     if (!courseId) return;
@@ -58,9 +61,47 @@ export default function CourseDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <h1>{course.title}</h1>
-        <p className="text-muted-foreground">{course.description}</p>
+      <button
+        onClick={() => navigate(`/roadmaps/${course.roadmap_id}`)}
+        className="text-muted-foreground hover:text-foreground flex items-center gap-2 mb-2 transition-colors"
+      >
+        ← Back to Roadmap
+      </button>
+      <div className="bg-card border rounded-xl p-8 mb-8 mt-4 shadow-sm">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+          <div className="space-y-3 flex-1">
+            <h1 className="text-3xl font-bold text-foreground">{course.title}</h1>
+            <p className="text-muted-foreground max-w-2xl">{course.description}</p>
+          </div>
+
+          {!resourcesLoading && (
+            <div className="w-full md:w-64 shrink-0 bg-gray-50 border rounded-lg p-4">
+              {(() => {
+                const totalRes = (resources.primary ? 1 : 0) + (resources.additional?.length || 0);
+                const progress = getCourseProgress(course.id, totalRes);
+                const percentage = Math.min(progress.percentage, 100);
+
+                return (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-semibold text-gray-700">
+                      <span>Course Progress</span>
+                      <span className={percentage === 100 ? 'text-green-600' : 'text-blue-600'}>{percentage}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${percentage === 100 ? 'bg-green-500' : 'bg-blue-600'}`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-center text-gray-500 font-medium pt-1">
+                      {progress.completedCount} of {totalRes} resources completed
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
@@ -160,19 +201,29 @@ export default function CourseDetailPage() {
                               <span>{icon}</span> {label}
                             </h3>
                             <div className="grid grid-cols-1 gap-3">
-                              {items.map((res: any) => (
-                                <button
-                                  key={res.id}
-                                  onClick={() => navigate(`/course/${courseId}/resource/${res.id}`)}
-                                  className="w-full text-left flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition bg-card"
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="font-medium text-foreground line-clamp-2">{res.title}</span>
-                                    {res.platform && <span className="text-sm text-muted-foreground capitalize mt-1">{res.platform}</span>}
-                                  </div>
-                                  <span className="text-sm text-muted-foreground ml-4 shrink-0">→</span>
-                                </button>
-                              ))}
+                              {items.map((res: any) => {
+                                const status = getResourceProgress(courseId as string, res.id);
+                                return (
+                                  <button
+                                    key={res.id}
+                                    onClick={() => navigate(`/course/${courseId}/resource/${res.id}`)}
+                                    className="w-full text-left flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition bg-card"
+                                  >
+                                    <div className="flex items-center gap-4 text-left">
+                                      <div className="shrink-0 text-gray-400 mt-1">
+                                        {status === 'completed' && <span className="text-green-500 text-xl leading-none">✓</span>}
+                                        {status === 'in_progress' && <span className="text-blue-500 text-sm leading-none">●</span>}
+                                        {status === 'not_started' && <span className="text-gray-300 text-sm leading-none">○</span>}
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="font-medium text-foreground line-clamp-2">{res.title}</span>
+                                        {res.platform && <span className="text-sm text-muted-foreground capitalize mt-1">{res.platform}</span>}
+                                      </div>
+                                    </div>
+                                    <span className="text-sm text-muted-foreground ml-4 shrink-0">→</span>
+                                  </button>
+                                )
+                              })}
                             </div>
                           </div>
                         );
