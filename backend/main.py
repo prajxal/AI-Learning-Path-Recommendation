@@ -17,6 +17,7 @@ from routers import resume
 from routers import resources
 from routers import skill_graph
 from routers import quiz
+from routers import skill_profile
 from db.database import engine, Base
 
 # Import all models to ensure metadata.create_all registers them
@@ -58,6 +59,7 @@ app.include_router(resume.router, prefix="/resume", tags=["resume"])
 app.include_router(resources.router, prefix="/courses", tags=["resources"])
 app.include_router(skill_graph.router, prefix="/skill-graph", tags=["skill-graph"])
 app.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
+app.include_router(skill_profile.router, prefix="/skill-profile", tags=["skill-profile"])
 
 @app.get("/")
 def root() -> dict[str, str]:

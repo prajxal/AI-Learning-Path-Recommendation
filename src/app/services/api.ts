@@ -22,9 +22,16 @@ type EventResponse = {
   status: string;
 };
 
-async function requestJson<T>(url: string, options?: RequestInit): Promise<T | null> {
+async function requestJson<T>(url: string, options: RequestInit = {}): Promise<T | null> {
   try {
-    const response = await fetch(url, options);
+    const token = localStorage.getItem("access_token");
+    const headers = {
+      ...options.headers,
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const response = await fetch(url, { ...options, headers });
 
     if (!response.ok) {
       throw new Error(`Request failed: ${response.status}`);

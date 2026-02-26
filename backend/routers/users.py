@@ -26,10 +26,15 @@ def get_user_skills(current_user: User = Depends(get_current_user), db: Session 
         }
 
     skill_list = []
+    
+    # Get distinct roadmaps from the user's profiles
+    roadmap_ids = list(set(p.roadmap_id for p in profiles))
 
-    for profile in profiles:
-        roadmap_id = profile.skill_name
-        
+    for roadmap_id in roadmap_ids:
+        roadmap_profiles = [p for p in profiles if p.roadmap_id == roadmap_id]
+        avg_confidence = sum(p.confidence for p in roadmap_profiles) / len(roadmap_profiles)
+        avg_proficiency = sum(p.proficiency_level for p in roadmap_profiles) / len(roadmap_profiles)
+
         # Count total courses in roadmap
         total_courses = db.query(func.count(Course.id)) \
             .filter(Course.roadmap_id == roadmap_id) \
@@ -49,12 +54,12 @@ def get_user_skills(current_user: User = Depends(get_current_user), db: Session 
 
         skill_list.append({
             "roadmap_id": roadmap_id,
-            "trust_score": float(profile.synthesized_weight * 1000) if profile.synthesized_weight else 800.0,
-            "proficiency_level": float(profile.confidence) if profile.confidence else 0.0,
+            "trust_score": float(avg_confidence * 1000) if avg_confidence else 800.0,
+            "proficiency_level": float(avg_proficiency) if avg_proficiency else 0.0,
             "completed_courses": completed_courses,
             "total_courses": total_courses,
             "progress_percent": progress_percent,
-            "last_updated": profile.last_updated
+            "last_updated": roadmap_profiles[0].updated_at if roadmap_profiles else None
         })
 
     return {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { getToken } from "../../services/auth";
 import { useProgress } from "../hooks/useProgress";
+import { getSkillProfile, SkillProfile } from "../services/quizApi";
 
 type Course = {
   id: string;
@@ -22,20 +23,26 @@ export default function CourseDetailPage() {
   const [pathLoading, setPathLoading] = useState(true);
   const [resources, setResources] = useState<{ primary: any, additional: any[] }>({ primary: null, additional: [] });
   const [resourcesLoading, setResourcesLoading] = useState(true);
+  const [skillProfile, setSkillProfile] = useState<SkillProfile | null>(null);
+  const [skillStatus, setSkillStatus] = useState<string>("locked");
 
   const { getResourceProgress, getCourseProgress } = useProgress();
 
   useEffect(() => {
     if (!courseId) return;
 
-    fetch(`http://localhost:8000/courses/${courseId}`)
+    const token = getToken();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    fetch(`http://localhost:8000/courses/${courseId}`, { headers })
       .then((res) => res.json())
       .then(setCourse)
       .catch(() => setCourse(null));
 
     const userId = localStorage.getItem("user_id");
 
-    fetch(`http://localhost:8000/learning-path/${userId}/${courseId}`)
+    fetch(`http://localhost:8000/learning-path/${userId}/${courseId}`, { headers })
       .then((res) => res.json())
       .then((data) => {
         setLearningPath(data.path || []);
@@ -43,12 +50,26 @@ export default function CourseDetailPage() {
       })
       .catch(() => setPathLoading(false));
 
-    const token = getToken();
-    fetch(`http://localhost:8000/courses/${courseId}/resources`, {
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+    const roadmapId = courseId.split(":")[0];
+
+    // Fetch Skill Graph Status
+    fetch(`http://localhost:8000/skill-graph/${roadmapId}/status`, {
+      headers: { "Authorization": `Bearer ${token}` }
     })
+      .then((res) => res.json())
+      .then((data) => {
+        // Find this specific course's status
+        const currentSkill = data.find((item: any) => item.skill_id === courseId);
+        if (currentSkill) {
+          setSkillStatus(currentSkill.status);
+        }
+      })
+      .catch(() => setSkillStatus("locked"));
+
+    // Fetch Adaptive Skill Profile
+    getSkillProfile(courseId).then(setSkillProfile);
+
+    fetch(`http://localhost:8000/courses/${courseId}/resources`, { headers })
       .then((res) => res.json())
       .then((data) => {
         setResources(data || { primary: null, additional: [] });
@@ -71,9 +92,65 @@ export default function CourseDetailPage() {
       </button>
       <div className="bg-card border rounded-xl p-8 mb-8 mt-4 shadow-sm">
         <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6">
-          <div className="space-y-3 flex-1">
+          <div className="space-y-4 flex-1">
             <h1 className="text-3xl font-bold text-foreground">{course.title}</h1>
             <p className="text-muted-foreground max-w-2xl">{course.description}</p>
+
+            {/* Adaptive Mastery UI */}
+            {skillProfile && (
+              <div className="flex gap-4 mt-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 w-40">
+                  <div className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">Mastery</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {Math.round(skillProfile.proficiency_level)}%
+                  </div>
+                </div>
+                <div className="bg-muted border rounded-lg p-3 w-40">
+                  <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Confidence</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {Math.round(skillProfile.confidence * 100)}%
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2">
+              {(() => {
+                const totalRes = (resources.primary ? 1 : 0) + (resources.additional?.length || 0);
+                const progress = getCourseProgress(course.id, totalRes);
+                const resourcesFinished = totalRes > 0 && progress.percentage === 100;
+
+                const isUnlocked = skillStatus === "unlocked" || skillStatus === "completed" || resourcesFinished;
+
+                if (!isUnlocked && skillStatus === "locked") {
+                  return (
+                    <button disabled className="bg-gray-100 text-gray-400 font-medium py-2 px-6 rounded-md cursor-not-allowed flex items-center gap-2">
+                      <span>🔒</span> Locked — Complete prerequisites
+                    </button>
+                  );
+                }
+
+                if (skillStatus === "completed") {
+                  return (
+                    <button
+                      onClick={() => navigate(`/course/${courseId}/quiz`)}
+                      className="bg-green-100 text-green-700 hover:bg-green-200 font-semibold py-2 px-6 rounded-md border border-green-200 transition-colors flex items-center gap-2"
+                    >
+                      <span>✓</span> Skill Mastered (Retake Quiz)
+                    </button>
+                  );
+                }
+
+                return (
+                  <button
+                    onClick={() => navigate(`/course/${courseId}/quiz`)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md shadow-sm transition-colors flex items-center gap-2"
+                  >
+                    <span>🧠</span> Take Quiz
+                  </button>
+                );
+              })()}
+            </div>
           </div>
 
           {!resourcesLoading && (

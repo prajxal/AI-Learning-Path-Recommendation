@@ -4,5 +4,6 @@ from .user_skill import UserSkill
 from .skill_edge import SkillEdge
 from .skill_quiz import SkillQuiz
 from .quiz_attempt import QuizAttempt
+from .skill_profile import SkillProfile
 
-__all__ = ["User", "UserSkill", "Event", "SkillEdge", "SkillQuiz", "QuizAttempt"]
+__all__ = ["User", "UserSkill", "Event", "SkillEdge", "SkillQuiz", "QuizAttempt", "SkillProfile"]

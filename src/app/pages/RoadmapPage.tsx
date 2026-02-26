@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RoadmapContainer, RoadmapTopic } from '../components/RoadmapContainer';
 import { LemonCard } from '../components/LemonCard';
+import { getSkillProfile, SkillProfile } from '../services/quizApi';
 
 interface RoadmapPageProps {
   learningGoal: string;
@@ -11,6 +12,39 @@ interface RoadmapPageProps {
 
 export function RoadmapPage({ learningGoal, topics, onTopicClick }: RoadmapPageProps) {
   const navigate = useNavigate();
+
+  // Track dynamically loaded profiles
+  const [profiles, setProfiles] = React.useState<Record<string, SkillProfile>>({});
+
+  React.useEffect(() => {
+    // Fetch profile for every topic concurrently
+    const fetchProfiles = async () => {
+      const profileDefs = await Promise.all(
+        topics.map(t => getSkillProfile(t.id).then(p => ({ id: t.id, profile: p })))
+      );
+
+      const newProfiles: Record<string, SkillProfile> = {};
+      profileDefs.forEach(def => {
+        if (def.profile) newProfiles[def.id] = def.profile;
+      });
+      setProfiles(newProfiles);
+    };
+
+    if (topics.length > 0) {
+      fetchProfiles();
+    }
+  }, [topics]);
+
+  // Inject dynamic profile metrics into the visual topic array
+  const enhancedTopics = topics.map(topic => {
+    const prof = profiles[topic.id];
+    return {
+      ...topic,
+      mastery: prof ? prof.proficiency_level : undefined,
+      confidence: prof ? prof.confidence : undefined
+    };
+  });
+
   const totalTopics = topics.length;
   const completedTopics = topics.filter(t => t.status === 'completed').length;
   const unlockedTopics = topics.filter(t => t.status === 'unlocked').length;
@@ -69,7 +103,7 @@ export function RoadmapPage({ learningGoal, topics, onTopicClick }: RoadmapPageP
       </div>
 
       {/* Roadmap */}
-      <RoadmapContainer topics={topics} onTopicClick={onTopicClick} />
+      <RoadmapContainer topics={enhancedTopics} onTopicClick={onTopicClick} />
     </div>
   );
 }

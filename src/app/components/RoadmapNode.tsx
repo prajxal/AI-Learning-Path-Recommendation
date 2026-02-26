@@ -10,12 +10,14 @@ interface RoadmapNodeProps {
   description: string;
   status: NodeStatus;
   difficulty?: string;
+  mastery?: number;
+  confidence?: number;
   onClick?: () => void;
 }
 
 import { useProgress } from '../hooks/useProgress';
 
-export function RoadmapNode({ id, title, description, status, difficulty, onClick }: RoadmapNodeProps) {
+export function RoadmapNode({ id, title, description, status, difficulty, mastery, confidence, onClick }: RoadmapNodeProps) {
   const isLocked = status === 'locked';
   const isCompleted = status === 'completed';
   const isUnlocked = status === 'unlocked';
@@ -81,17 +83,32 @@ export function RoadmapNode({ id, title, description, status, difficulty, onClic
 
         {/* Progress Bar Injection */}
         {!isLocked && (
-          <div className="space-y-1.5 mb-2">
-            <div className="flex justify-between text-xs font-semibold text-gray-500">
-              <span>Course Progress</span>
-              <span className={isCompleted ? 'text-green-600' : 'text-blue-600'}>{percent}%</span>
+          <div className="space-y-3 mb-2">
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-semibold text-gray-500">
+                <span>Course Progress</span>
+                <span className={isCompleted ? 'text-green-600' : 'text-blue-600'}>{percent}%</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-green-500' : 'bg-blue-600'}`}
+                  style={{ width: `${percent}%` }}
+                ></div>
+              </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-green-500' : 'bg-blue-600'}`}
-                style={{ width: `${percent}%` }}
-              ></div>
-            </div>
+
+            {(mastery !== undefined || confidence !== undefined) && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="bg-primary/10 border-primary/20 border px-2 py-1 rounded-md flex-1 text-center">
+                  <div className="text-[9px] uppercase font-bold text-primary">Mastery</div>
+                  <div className="text-sm font-bold">{Math.round(mastery || 0)}%</div>
+                </div>
+                <div className="bg-muted border px-2 py-1 rounded-md flex-1 text-center">
+                  <div className="text-[9px] uppercase font-bold text-muted-foreground">Confidence</div>
+                  <div className="text-sm font-bold">{Math.round((confidence || 0) * 100)}%</div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

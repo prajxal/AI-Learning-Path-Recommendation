@@ -58,13 +58,17 @@ def get_adaptive_skill_score(user_id: str, roadmap_id: str, db: Session) -> floa
 
     trust_score = float(skill.trust_score) if skill and skill.trust_score is not None else BASELINE_SCORE
 
-    # Fetch synthesized skill profile
-    profile = get_skill_profile(user_id, roadmap_id, db)
+    # Fetch synthesized skill profiles for roadmap
+    profiles = db.query(SkillProfile).filter(
+        SkillProfile.user_id == user_id,
+        SkillProfile.roadmap_id == roadmap_id
+    ).all()
 
-    if profile:
-        normalized_skill_score = 800 + (profile.synthesized_weight * 1200)
+    if profiles:
+        avg_confidence = sum(p.confidence for p in profiles) / len(profiles)
+        normalized_skill_score = 800 + (avg_confidence * 1200)
     else:
-        normalized_skill_score = 800
+        normalized_skill_score = BASELINE_SCORE
 
     # Blend trust_score and skill_weight_score
     adaptive_score = (0.7 * trust_score) + (0.3 * normalized_skill_score)

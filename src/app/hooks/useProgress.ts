@@ -35,11 +35,12 @@ export function useProgress() {
 
     // We can fetch the real user profile to get the ID, or decode JWT.
     useEffect(() => {
-        const token = getToken();
-        if (token) {
-            fetch('http://localhost:8000/auth/me', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
+        const tokenStr = localStorage.getItem("access_token");
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (tokenStr) headers["Authorization"] = `Bearer ${tokenStr}`;
+
+        if (tokenStr) {
+            fetch('http://localhost:8000/auth/me', { headers })
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.id) {

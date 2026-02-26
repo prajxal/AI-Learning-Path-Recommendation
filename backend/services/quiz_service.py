@@ -3,6 +3,7 @@ from models.skill_quiz import SkillQuiz
 from models.quiz_attempt import QuizAttempt
 from models.event import Event
 from models.course import Course
+from services.skill_profile_service import update_skill_profile_from_quiz
 import logging
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,18 @@ def evaluate_quiz_attempt(user_id: str, skill_id: str, answers: dict, db: Sessio
     db.add(attempt)
     db.flush() # Flush to get attempt.id if needed
     
+    # We need the course to get roadmap_id
+    course = db.query(Course).filter(Course.id == skill_id).first()
+    if course:
+        # As per integration instructions, update adaptive profile securely
+        update_skill_profile_from_quiz(
+            user_id=user_id,
+            skill_id=skill_id,
+            quiz_score=score,
+            roadmap_id=course.roadmap_id,
+            db=db
+        )
+    
     if passed:
         # Check if they already have a completed event to avoid duplicates
         existing_event = db.query(Event).filter(
@@ -62,17 +75,15 @@ def evaluate_quiz_attempt(user_id: str, skill_id: str, answers: dict, db: Sessio
             Event.course_id == skill_id
         ).first()
         
-        if not existing_event:
-            course = db.query(Course).filter(Course.id == skill_id).first()
-            if course:
-                event = Event(
-                    user_id=user_id,
-                    event_type="course_completed",
-                    course_id=skill_id,
-                    roadmap_id=course.roadmap_id,
-                    payload=json.dumps({"score": score, "attempt_id": attempt.id})
-                )
-                db.add(event)
+        if not existing_event and course:
+            event = Event(
+                user_id=user_id,
+                event_type="course_completed",
+                course_id=skill_id,
+                roadmap_id=course.roadmap_id,
+                payload=json.dumps({"score": score, "attempt_id": attempt.id})
+            )
+            db.add(event)
                 
     db.commit()
     db.refresh(attempt)

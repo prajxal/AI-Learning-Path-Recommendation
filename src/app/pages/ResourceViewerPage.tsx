@@ -46,13 +46,12 @@ export default function ResourceViewerPage() {
     useEffect(() => {
         if (!courseId) return;
 
-        const token = getToken();
+        const tokenStr = localStorage.getItem("access_token");
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (tokenStr) headers["Authorization"] = `Bearer ${tokenStr}`;
+
         setLoading(true);
-        fetch(`http://localhost:8000/courses/${courseId}/resources`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
+        fetch(`http://localhost:8000/courses/${courseId}/resources`, { headers })
             .then((res) => res.json())
             .then((data) => {
                 setResources(data || { primary: null, additional: [] });

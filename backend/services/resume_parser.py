@@ -77,7 +77,11 @@ def ingest_resume(file_path: str, user_id: str, db: Session):
             print(f"[ResumeParser] Inserted new SkillWeight for {skill_name}")
 
         print(f"[ResumeParser] Triggering synthesizer for {skill_name}")
-        synthesize_skill_profile(user_id, skill_name, db)
+        db.flush()
+        try:
+            synthesize_skill_profile(user_id, skill_name, db)
+        except Exception as e:
+            print(f"[ResumeParser] Non-fatal error synthesizing profile for {skill_name}: {e}")
 
     db.commit()
     print("[ResumeParser] Ingestion pipeline complete.")

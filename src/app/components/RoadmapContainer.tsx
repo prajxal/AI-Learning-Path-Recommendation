@@ -8,6 +8,8 @@ export interface RoadmapTopic {
   status: NodeStatus;
   difficulty: string;
   stage: number;
+  mastery?: number;
+  confidence?: number;
 }
 
 interface RoadmapContainerProps {
@@ -49,6 +51,8 @@ export function RoadmapContainer({ topics, onTopicClick }: RoadmapContainerProps
                 description={topic.description}
                 status={topic.status}
                 difficulty={topic.difficulty}
+                mastery={topic.mastery}
+                confidence={topic.confidence}
                 onClick={() => onTopicClick(topic)}
               />
             ))}

@@ -15,21 +15,19 @@ export default function MyProgressPage() {
             const token = getToken();
             try {
                 // Fetch User Skills to display exact adaptive scores
-                const userRes = await fetch(`http://localhost:8000/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const tokenStr = localStorage.getItem("access_token");
+                const headers: Record<string, string> = { "Content-Type": "application/json" };
+                if (tokenStr) headers["Authorization"] = `Bearer ${tokenStr}`;
+
+                const userRes = await fetch(`http://localhost:8000/auth/me`, { headers });
                 const userData = await userRes.json();
 
-                const skillsRes = await fetch(`http://localhost:8000/users/${userData.id}/skills`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const skillsRes = await fetch(`http://localhost:8000/users/me/skills`, { headers });
                 const skillsData = await skillsRes.json();
                 setSkills(skillsData.skills || []);
 
                 // Fetch Roadmaps to match against local progress
-                const roadmapsRes = await fetch(`http://localhost:8000/roadmaps`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const roadmapsRes = await fetch(`http://localhost:8000/roadmaps`, { headers });
                 const roadmapsData = await roadmapsRes.json();
                 setRoadmaps(roadmapsData);
             } catch (err) {
