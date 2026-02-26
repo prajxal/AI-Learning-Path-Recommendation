@@ -12,7 +12,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!token) {
-      navigate('/login', { replace: true });
+      navigate('/signin', { replace: true });
     }
   }, [token, navigate]);
 
@@ -197,7 +197,7 @@ export default function DashboardPage() {
                   </div>
 
                   <Link
-                    to={`/roadmaps/${skill.roadmap_id}`}
+                    to={`/roadmap/${skill.roadmap_id}`}
                     className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Continue
@@ -211,7 +211,7 @@ export default function DashboardPage() {
             <div className="text-center text-gray-500 py-12 bg-gray-50 rounded-lg border border-dashed">
               You haven't started any learning paths yet.
               <br />
-              <Link to="/" className="text-blue-600 hover:underline mt-2 inline-block">
+              <Link to="/roadmaps" className="text-blue-600 hover:underline mt-2 inline-block">
                 Browse Roadmaps
               </Link>
             </div>

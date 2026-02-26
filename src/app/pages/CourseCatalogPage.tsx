@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { LemonInput } from '../components/LemonInput';
 import { LemonCard } from '../components/LemonCard';
 import { Course } from '../data/courses';
+import { getToken } from "../../services/auth";
+import { ROUTES } from "../constants/routes";
 import { useCourses } from '../../hooks/useCourses';
 
 interface CourseCatalogPageProps {
@@ -76,15 +78,15 @@ export function CourseCatalogPage({ onCourseSelect }: CourseCatalogPageProps) {
               <GraduationCap className="w-5 h-5 text-accent" />
               <span className="font-medium text-accent">Engineering Learning Platform</span>
             </div>
-            
+
             <h1 className="text-5xl sm:text-6xl font-medium tracking-tight">
               Master Engineering
               <br />
               <span className="text-accent">One Course at a Time</span>
             </h1>
-            
+
             <p className="text-xl text-muted-foreground">
-              AI-powered learning paths designed specifically for engineering students. 
+              AI-powered learning paths designed specifically for engineering students.
               Choose your course and start building your future.
             </p>
 
@@ -118,10 +120,9 @@ export function CourseCatalogPage({ onCourseSelect }: CourseCatalogPageProps) {
                 onClick={() => setSelectedCategory(category)}
                 className={`
                   px-4 py-2 rounded-[6px] border transition-all font-medium
-                  ${
-                    selectedCategory === category
-                      ? 'bg-accent text-accent-foreground border-accent'
-                      : 'bg-card text-foreground border-border hover:bg-secondary'
+                  ${selectedCategory === category
+                    ? 'bg-accent text-accent-foreground border-accent'
+                    : 'bg-card text-foreground border-border hover:bg-secondary'
                   }
                 `}
               >
@@ -141,7 +142,7 @@ export function CourseCatalogPage({ onCourseSelect }: CourseCatalogPageProps) {
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <Link key={course.id} to={`/courses/${course.id}`} className="block">
+            <Link key={course.id} to={ROUTES.COURSE(course.id)} className="block">
               <LemonCard
                 hoverable
                 onClick={() => onCourseSelect(course)}

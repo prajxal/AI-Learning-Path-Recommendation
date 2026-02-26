@@ -159,7 +159,7 @@ export default function ResourceViewerPage() {
             <div className="w-1/4 min-w-[280px] max-w-[350px] border-r bg-muted/20 overflow-y-auto">
                 <div className="p-4 border-b bg-card sticky top-0 z-10 hidden sm:flex items-center gap-2">
                     <button
-                        onClick={() => navigate(`/courses/${courseId}`)}
+                        onClick={() => navigate(`/course/${courseId}`)}
                         className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted"
                     >
                         ← Back

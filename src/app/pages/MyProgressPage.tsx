@@ -109,7 +109,7 @@ export default function MyProgressPage() {
                                     <div className="px-6 py-4 bg-muted/20 border-t flex justify-between items-center">
                                         <span className="text-sm font-medium text-muted-foreground">Adaptive Score: {Math.round(skills.find(s => s.roadmap_id === roadmap.id)?.trust_score || 0)}</span>
                                         <button
-                                            onClick={() => navigate(`/roadmaps/${roadmap.id}`)}
+                                            onClick={() => navigate(`/roadmap/${roadmap.id}`)}
                                             className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1"
                                         >
                                             Continue Learning <span className="text-lg leading-none">→</span>

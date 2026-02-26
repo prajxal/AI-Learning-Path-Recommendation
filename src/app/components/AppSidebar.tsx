@@ -11,7 +11,7 @@ interface AppSidebarProps {
 
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
-  { id: 'roadmap', label: 'Learning Path', icon: Map, path: '/' },
+  { id: 'roadmap', label: 'Learning Path', icon: Map, path: '/roadmaps' },
   { id: 'progress', label: 'My Progress', icon: User, path: '/progress' },
 ];
 
@@ -20,7 +20,7 @@ export function AppSidebar({ currentPage, isOpen = true, onClose }: AppSidebarPr
 
   const handleLogout = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate('/signin', { replace: true });
   };
 
   return (

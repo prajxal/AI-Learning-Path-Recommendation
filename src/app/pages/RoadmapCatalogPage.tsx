@@ -9,7 +9,7 @@ function RoadmapCard({ roadmap }: { roadmap: any }) {
 
     return (
         <Link
-            to={`/roadmaps/${roadmap.id}`}
+            to={`/roadmap/${roadmap.id}`}
             className="block border rounded-lg p-6 hover:bg-gray-50 transition"
         >
             <div className="text-xl font-medium capitalize">
@@ -32,9 +32,13 @@ function RoadmapCard({ roadmap }: { roadmap: any }) {
 }
 
 export default function RoadmapCatalogPage() {
+    console.log("[RoadmapCatalogPage] Rendering. Pathname:", window.location.pathname);
     const { roadmaps, loading, error } = useRoadmaps();
 
-    if (loading) return <div>Loading roadmaps...</div>;
+    if (loading) {
+        console.log("[RoadmapCatalogPage] Loading...");
+        return <div>Loading roadmaps...</div>;
+    }
     if (error) return <div>Error loading roadmaps</div>;
 
     return (

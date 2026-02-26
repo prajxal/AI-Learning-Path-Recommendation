@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
 import { useProgress } from "../hooks/useProgress";
 
 interface Course {
@@ -59,7 +60,7 @@ export default function RoadmapDetailPage() {
 
     return (
         <div className="space-y-6">
-            <Link to="/dashboard" className="text-muted-foreground hover:text-foreground flex items-center gap-2 mb-2 transition-colors">
+            <Link to={ROUTES.DASHBOARD} className="text-muted-foreground hover:text-foreground flex items-center gap-2 mb-2 transition-colors">
                 ← Back to Dashboard
             </Link>
 
@@ -105,7 +106,7 @@ export default function RoadmapDetailPage() {
                     return (
                         <Link
                             key={course.id}
-                            to={`/courses/${course.id}`}
+                            to={ROUTES.COURSE(course.id)}
                             className="block bg-card border rounded-xl p-5 hover:border-blue-300 hover:shadow-md transition-all group relative"
                         >
                             <div className="flex justify-between items-start mb-2">

@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
 import { useEffect, useState } from "react";
 
 import { getToken } from "../../services/auth";
@@ -14,6 +15,7 @@ type Course = {
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
+  console.log("CourseDetailPage courseId:", courseId);
   const navigate = useNavigate();
   const [course, setCourse] = useState<Course | null>(null);
   const [learningPath, setLearningPath] = useState<any[]>([]);
@@ -62,7 +64,7 @@ export default function CourseDetailPage() {
   return (
     <div className="space-y-6">
       <button
-        onClick={() => navigate(`/roadmaps/${course.roadmap_id}`)}
+        onClick={() => navigate(ROUTES.ROADMAP(course.roadmap_id))}
         className="text-muted-foreground hover:text-foreground flex items-center gap-2 mb-2 transition-colors"
       >
         ← Back to Roadmap
@@ -165,7 +167,7 @@ export default function CourseDetailPage() {
                       {resources.primary.title}
                     </p>
                     <button
-                      onClick={() => navigate(`/course/${courseId}/resource/${resources.primary.id}`)}
+                      onClick={() => navigate(ROUTES.RESOURCE(courseId as string, resources.primary.id))}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors w-full sm:w-auto"
                     >
                       Start Learning
@@ -206,7 +208,7 @@ export default function CourseDetailPage() {
                                 return (
                                   <button
                                     key={res.id}
-                                    onClick={() => navigate(`/course/${courseId}/resource/${res.id}`)}
+                                    onClick={() => navigate(ROUTES.RESOURCE(courseId as string, res.id))}
                                     className="w-full text-left flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition bg-card"
                                   >
                                     <div className="flex items-center gap-4 text-left">

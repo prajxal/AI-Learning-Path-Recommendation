@@ -23,6 +23,7 @@ def extract_roadmaps():
     total_courses = 0
     total_prereqs = 0
     scanned_files = 0
+    processed_roadmaps = set()
     
     print(f"Scanning for roadmaps in: {ROADMAPS_DIR}")
 
@@ -71,6 +72,7 @@ def extract_roadmaps():
                         
                     print(f"Processing {filename} (ID: {roadmap_id})...")
                     scanned_files += 1
+                    processed_roadmaps.add(roadmap_id)
                     
                     # 1. Extract Nodes
                     file_courses_count = 0
@@ -169,6 +171,13 @@ def extract_roadmaps():
                     continue
 
         session.commit()
+        
+        print("\nGenerating Skill Graphs...")
+        from services.skill_graph_service import generate_graph_for_roadmap
+        for r_id in processed_roadmaps:
+            generate_graph_for_roadmap(r_id, session)
+        print("Skill Graphs Generated.")
+
         print("\nExtraction Complete.")
         print(f"Scanned {scanned_files} files.")
         print(f"Inserted/Updated {total_courses} courses.")
