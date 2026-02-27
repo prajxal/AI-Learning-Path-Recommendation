@@ -26,7 +26,12 @@ def signup(request: AuthRequest, db: Session = Depends(get_db)):
 
     # Create new user
     user_id = str(uuid.uuid4())
-    hashed_pw = hash_password(request.password)
+    try:
+        hashed_pw = hash_password(request.password)
+    except Exception as e:
+        print(f"Password hashing failed: {e}")
+        raise HTTPException(status_code=500, detail="Password hashing failed")
+        
     new_user = User(
         id=user_id,
         email=request.email,
