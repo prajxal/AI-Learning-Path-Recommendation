@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("/{skill_id}")
 async def read_quiz_for_skill(skill_id: str, db: Session = Depends(get_db)):
     quiz = await get_or_generate_quiz(skill_id, db)
-    if not quiz:
+    if not quiz or not quiz.questions:
         raise HTTPException(status_code=404, detail="Quiz not found")
         
     # Return questions without correct answers to prevent cheating

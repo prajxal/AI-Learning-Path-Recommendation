@@ -36,7 +36,7 @@ app = FastAPI(title="AI Learning Path Recommendation System")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,5 +62,5 @@ app.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
 app.include_router(skill_profile.router, prefix="/skill-profile", tags=["skill-profile"])
 
 @app.get("/")
-def root() -> dict[str, str]:
+def health_check():
     return {"status": "backend running"}

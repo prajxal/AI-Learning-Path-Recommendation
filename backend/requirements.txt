@@ -2,10 +2,13 @@ fastapi
 uvicorn
 python-multipart
 sqlalchemy
+psycopg2-binary
+python-dotenv
+PyPDF2
+spacy
 
 python-jose[cryptography]
 passlib[bcrypt]
 
 httpx
-python-dotenv
 pdfplumber

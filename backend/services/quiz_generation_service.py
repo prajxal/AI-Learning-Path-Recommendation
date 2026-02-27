@@ -77,9 +77,17 @@ async def get_or_generate_quiz(skill_id: str, db: Session) -> SkillQuiz:
     using the Gemini API and saves it. Handles race conditions safely.
     """
     # Step 1: Check cache
-    existing_quiz = db.query(SkillQuiz).filter(SkillQuiz.skill_id == skill_id).first()
-    if existing_quiz:
-        return existing_quiz
+    quiz = db.query(SkillQuiz).filter(SkillQuiz.skill_id == skill_id).first()
+    
+    # Ensure questions is a list for the length check (SQLite returns string for JSON)
+    if quiz and isinstance(quiz.questions, str):
+        try:
+            quiz.questions = json.loads(quiz.questions)
+        except json.JSONDecodeError:
+            pass
+
+    if quiz and quiz.questions and len(quiz.questions) == 4:
+        return quiz
         
     # Step 2: Fetch required context
     course = db.query(Course).filter(Course.id == skill_id).first()
@@ -92,9 +100,12 @@ async def get_or_generate_quiz(skill_id: str, db: Session) -> SkillQuiz:
     roadmap_title = roadmap_id.replace('-', ' ').title() # simple fallback for roadmap title
     
     # Step 3: Trigger Generation
+    from backend.config import GEMINI_API_KEY
     if not GEMINI_API_KEY:
-        logger.error("GEMINI_API_KEY is not set.")
-        raise HTTPException(status_code=503, detail="Quiz generation temporarily unavailable")
+        raise HTTPException(
+            status_code=404,
+            detail="Quiz not found and Gemini generation unavailable"
+        )
         
     prompt = f"""You are an expert technical instructor.
 
@@ -164,15 +175,21 @@ Required JSON format:
         raise HTTPException(status_code=503, detail="Quiz generation temporarily unavailable")
         
     try:
-        valid_questions = validate_quiz_json(quiz_json)
+        questions = validate_quiz_json(quiz_json)
     except ValueError as e:
         logger.error(f"Quiz validation failed: {e}")
         raise HTTPException(status_code=503, detail="Quiz generation temporarily unavailable")
         
+    if not questions or len(questions) != 4:
+        raise HTTPException(
+            status_code=503,
+            detail="Quiz generation failed"
+        )
+        
     # Step 5: Safely persist with race-condition handling
     new_quiz = SkillQuiz(
         skill_id=skill_id,
-        questions=json.dumps(valid_questions),
+        questions=json.dumps(questions),
         passing_score=100  # Enforce 100% since there are only 4 questions
     )
     
@@ -180,14 +197,26 @@ Required JSON format:
         db.add(new_quiz)
         db.commit()
         db.refresh(new_quiz)
+        
+        # Ensure returned object has list instead of string
+        if isinstance(new_quiz.questions, str):
+            new_quiz.questions = json.loads(new_quiz.questions)
+            
         return new_quiz
     except IntegrityError:
         # Race condition: someone else generated and inserted the quiz 
         # while we were also generating it
         db.rollback()
-        existing_quiz = db.query(SkillQuiz).filter(SkillQuiz.skill_id == skill_id).first()
-        if existing_quiz:
-            return existing_quiz
+        quiz = db.query(SkillQuiz).filter(SkillQuiz.skill_id == skill_id).first()
+        
+        if quiz and isinstance(quiz.questions, str):
+            try:
+                quiz.questions = json.loads(quiz.questions)
+            except json.JSONDecodeError:
+                pass
+
+        if quiz and quiz.questions and len(quiz.questions) == 4:
+            return quiz
         else:
             # Should theoretically never happen unless deleted immediately after insertion
             raise HTTPException(status_code=503, detail="Quiz generation temporarily unavailable")
