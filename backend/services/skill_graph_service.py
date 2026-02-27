@@ -18,7 +18,7 @@ def generate_graph_for_roadmap(roadmap_id: str, db: Session):
         # If node_id is an integer representation as a string, casting might be needed, but we'll try sorting strings or relying on insertion ID if they are chronological. Wait, extract_roadmaps.py didn't store a explicit sequence number. Let's look at `node_id`. The prompt: "You must order by the original roadmap ordering field used during ingestion. That is usually: position, sequence, node_order, created index".
         # Since extract_roadmaps iterates linearly through JSON, insertion order (rowid in SQLite) guarantees the sequence and created_at timestamps can be identical.
         from sqlalchemy.sql import text
-        courses = db.query(Course).filter(Course.roadmap_id == roadmap_id).order_by(text("rowid")).all()
+        courses = db.query(Course).filter(Course.roadmap_id == roadmap_id).order_by(Course.id).all()
 
         if len(courses) < 2:
             return # Skip if less than 2 courses

@@ -1,35 +1,37 @@
 import os
-from collections.abc import Generator
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 
+engine_kwargs = {
+    "pool_pre_ping": True,
+}
+
 if DATABASE_URL.startswith("sqlite"):
     print("Using SQLite database")
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
 else:
     print("Using PostgreSQL database")
+    engine_kwargs["pool_size"] = 3
+    engine_kwargs["max_overflow"] = 5
+    engine_kwargs["connect_args"] = {"sslmode": "require"}
 
-connect_args = {}
-if DATABASE_URL.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
-elif DATABASE_URL.startswith("postgresql"):
-    connect_args["sslmode"] = "require"
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    connect_args=connect_args
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-
-def get_db() -> Generator:
+def get_db():
+    print("DB session opened")
     db = SessionLocal()
     try:
         yield db
     finally:
+        print("DB session closed")
         db.close()

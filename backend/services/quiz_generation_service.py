@@ -100,7 +100,7 @@ async def get_or_generate_quiz(skill_id: str, db: Session) -> SkillQuiz:
     roadmap_title = roadmap_id.replace('-', ' ').title() # simple fallback for roadmap title
     
     # Step 3: Trigger Generation
-    from backend.config import GEMINI_API_KEY
+    from config import GEMINI_API_KEY
     if not GEMINI_API_KEY:
         raise HTTPException(
             status_code=404,
