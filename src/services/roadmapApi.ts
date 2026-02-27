@@ -4,7 +4,7 @@ export interface Roadmap {
     topic_count: number;
 }
 
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "./api";
 
 export async function getRoadmaps(): Promise<Roadmap[]> {
     try {

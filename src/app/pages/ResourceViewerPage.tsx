@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getToken } from "../../services/auth";
 import { useProgress } from "../hooks/useProgress";
+import BACKEND_URL from "../../services/api";
 
 type Resource = {
     id: string;
@@ -51,7 +52,7 @@ export default function ResourceViewerPage() {
         if (tokenStr) headers["Authorization"] = `Bearer ${tokenStr}`;
 
         setLoading(true);
-        fetch(`http://localhost:8000/courses/${courseId}/resources`, { headers })
+        fetch(`${BACKEND_URL}/courses/${courseId}/resources`, { headers })
             .then((res) => res.json())
             .then((data) => {
                 setResources(data || { primary: null, additional: [] });

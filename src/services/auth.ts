@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+import API_BASE from "./api";
 
 export async function signup(email: string, password: string) {
     const res = await fetch(`${API_BASE}/auth/signup`, {

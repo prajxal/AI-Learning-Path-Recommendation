@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getToken } from "../../services/auth";
 import { useProgress } from "../hooks/useProgress";
 import { getSkillProfile, SkillProfile } from "../services/quizApi";
+import BACKEND_URL from "../../services/api";
 
 type Course = {
   id: string;
@@ -35,14 +36,14 @@ export default function CourseDetailPage() {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    fetch(`http://localhost:8000/courses/${courseId}`, { headers })
+    fetch(`${BACKEND_URL}/courses/${courseId}`, { headers })
       .then((res) => res.json())
       .then(setCourse)
       .catch(() => setCourse(null));
 
     const userId = localStorage.getItem("user_id");
 
-    fetch(`http://localhost:8000/learning-path/${userId}/${courseId}`, { headers })
+    fetch(`${BACKEND_URL}/learning-path/${userId}/${courseId}`, { headers })
       .then((res) => res.json())
       .then((data) => {
         setLearningPath(data.path || []);
@@ -53,7 +54,7 @@ export default function CourseDetailPage() {
     const roadmapId = courseId.split(":")[0];
 
     // Fetch Skill Graph Status
-    fetch(`http://localhost:8000/skill-graph/${roadmapId}/status`, {
+    fetch(`${BACKEND_URL}/skill-graph/${roadmapId}/status`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then((res) => res.json())
@@ -69,7 +70,7 @@ export default function CourseDetailPage() {
     // Fetch Adaptive Skill Profile
     getSkillProfile(courseId).then(setSkillProfile);
 
-    fetch(`http://localhost:8000/courses/${courseId}/resources`, { headers })
+    fetch(`${BACKEND_URL}/courses/${courseId}/resources`, { headers })
       .then((res) => res.json())
       .then((data) => {
         setResources(data || { primary: null, additional: [] });

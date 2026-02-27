@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getToken } from '../../services/auth';
+import BACKEND_URL from "../../services/api";
 
 /**
  * Progress structure:
@@ -40,7 +41,7 @@ export function useProgress() {
         if (tokenStr) headers["Authorization"] = `Bearer ${tokenStr}`;
 
         if (tokenStr) {
-            fetch('http://localhost:8000/auth/me', { headers })
+            fetch(`${BACKEND_URL}/auth/me`, { headers })
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.id) {

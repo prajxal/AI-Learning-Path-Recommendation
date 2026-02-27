@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "./api";
 
 export async function getGithubStatus() {
     const res = await fetch(`${BACKEND_URL}/auth/github/status`, {

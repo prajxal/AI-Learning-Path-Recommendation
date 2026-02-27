@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://ai-learning-backend-2stp.onrender.com";
 
 export async function getUserSkills() {
     console.log("Token:", localStorage.getItem("access_token"));

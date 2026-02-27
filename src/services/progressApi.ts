@@ -7,7 +7,7 @@ export interface Progress {
     proficiency_level: number;
 }
 
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "./api";
 
 export async function getProgress(roadmapId: string): Promise<Progress | null> {
     try {

@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "./api";
 
 export async function uploadResume(file: File) {
     const formData = new FormData();

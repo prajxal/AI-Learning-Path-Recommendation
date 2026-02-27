@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "../../services/api";
 
 // --- Types ---
 export interface SkillProfile {

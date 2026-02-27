@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../hooks/useProgress';
 import { getToken } from '../../services/auth';
+import BACKEND_URL from "../../services/api";
 
 export default function MyProgressPage() {
     const navigate = useNavigate();
@@ -19,15 +20,15 @@ export default function MyProgressPage() {
                 const headers: Record<string, string> = { "Content-Type": "application/json" };
                 if (tokenStr) headers["Authorization"] = `Bearer ${tokenStr}`;
 
-                const userRes = await fetch(`http://localhost:8000/auth/me`, { headers });
+                const userRes = await fetch(`${BACKEND_URL}/auth/me`, { headers });
                 const userData = await userRes.json();
 
-                const skillsRes = await fetch(`http://localhost:8000/users/me/skills`, { headers });
+                const skillsRes = await fetch(`${BACKEND_URL}/users/me/skills`, { headers });
                 const skillsData = await skillsRes.json();
                 setSkills(skillsData.skills || []);
 
                 // Fetch Roadmaps to match against local progress
-                const roadmapsRes = await fetch(`http://localhost:8000/roadmaps`, { headers });
+                const roadmapsRes = await fetch(`${BACKEND_URL}/roadmaps`, { headers });
                 const roadmapsData = await roadmapsRes.json();
                 setRoadmaps(roadmapsData);
             } catch (err) {

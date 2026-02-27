@@ -5,7 +5,7 @@ export interface Course {
   difficulty_level: number | null;
 }
 
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "./api";
 
 export async function getCourses(limit: number = 100): Promise<Course[]> {
   try {

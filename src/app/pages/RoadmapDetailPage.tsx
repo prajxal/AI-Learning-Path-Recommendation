@@ -9,7 +9,7 @@ interface Course {
     difficulty_level: number;
 }
 
-const BACKEND_URL = "http://localhost:8000";
+import BACKEND_URL from "../../services/api";
 
 export default function RoadmapDetailPage() {
     const { roadmapId } = useParams();
